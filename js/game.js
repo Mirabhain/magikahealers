@@ -145,7 +145,7 @@ function resolveHeal(success) {
     npcObj.group._auraLight.color.setHex(0x22ff88);
     npcObj.group._auraLight.intensity = 2;
     healedCount++;
-    document.getElementById('hud-score').textContent = healedCount + ' / 4';
+    document.getElementById('hud-score').textContent = healedCount + ' / 9';
     fireSpellVFX(0x22ff88, npcObj.group, true);
     showDialog('✦ HEALED! ✦', activeNPC.winMsg + '\n\n📖 ' + activeNPC.lesson);
     notify('✓ ' + activeNPC.name + ' HEALED! +1');
@@ -164,7 +164,7 @@ function resolveHeal(success) {
       document.getElementById('dialog-box').classList.remove('show');
       dialogPhase = 0;
       document.removeEventListener('keydown', close);
-      if (healedCount >= 4)
+      if (healedCount >= 9)
         setTimeout(() => document.getElementById('win').classList.add('show'), 400);
     }
   };
