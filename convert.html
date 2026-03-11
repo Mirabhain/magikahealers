@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<body>
+  <h2>GLB → Base64 Converter</h2>
+  <input type="file" accept=".glb,.fbx" id="fileInput">
+  <br><br>
+  <button onclick="copyResult()">📋 Copy Base64</button>
+  <br><br>
+  <textarea id="output" rows="6" style="width:100%;font-size:11px" placeholder="Base64 will appear here..."></textarea>
+  <p id="status"></p>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', function() {
+      const file = this.files[0];
+      document.getElementById('status').textContent = 'Converting ' + file.name + '...';
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64 = e.target.result.split(',')[1];
+        document.getElementById('output').value = base64;
+        document.getElementById('status').textContent = '✅ Done! Size: ' + base64.length + ' chars. Now copy and paste into your HTML.';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function copyResult() {
+      const out = document.getElementById('output');
+      out.select();
+      document.execCommand('copy');
+      document.getElementById('status').textContent = '📋 Copied to clipboard!';
+    }
+  </script>
+</body>
+</html>
