@@ -38,17 +38,16 @@ function registerNPC(data) {
   // Aura ring (ground glow)
   const auraRing = new THREE.Mesh(
     new THREE.RingGeometry(0.7, 1.1, 24),
-    new THREE.MeshBasicMaterial({ color: 0xC026D3, transparent: true, opacity: 0.35, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ color: 0xC026D3, transparent: true, opacity: 0.6, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false })
   );
   auraRing.rotation.x = -Math.PI / 2;
   auraRing.position.y = 0.05;
   g.add(auraRing);
   g._auraRing = auraRing;
 
-  // Aura point light
-  const auraLight = new THREE.PointLight(0xC026D3, 1.5, 4);
-  auraLight.position.y = 1.0;
-  g.add(auraLight);
+  // Aura light — dummy object (no GPU point light, saves perf)
+  // Has .intensity and .position so existing code never crashes
+  const auraLight = { intensity: 1.5, position: { x:0, y:1.0, z:0 } };
   g._auraLight = auraLight;
 
   // Sick sprite
@@ -134,16 +133,10 @@ function loadNPCModelFromURL(npcId, url, targetH) {
     const bbox2 = new THREE.Box3().setFromObject(model);
     model.position.y = -bbox2.min.y;
 
-    model.traverse(child => {
-      if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; }
-    });
-
     entry.group.add(model);
     entry.group._model = model;
 
     // Try to find leg meshes by name for walk animation.
-    // If your GLB has bones/meshes named "leg_l" / "leg_r" (or similar)
-    // they will be wired up automatically. Otherwise leg swing is skipped.
     model.traverse(child => {
       const n = child.name.toLowerCase();
       if (!entry.group._legL && (n.includes('leg_l') || n.includes('legl') || n.includes('left_leg')))  entry.group._legL = child;
@@ -170,13 +163,13 @@ function loadNPCModelFromURL(npcId, url, targetH) {
 // ══════════════════════════════════════════════════
 loadNPCModelFromURL('badang',  './models/badang.glb');
 loadNPCModelFromURL('nenek',   './models/nenek.glb');
-loadNPCModelFromURL('pakpandir','./models/pakpandir.glb');
-loadNPCModelFromURL('siti',    './models/siti.glb');
-loadNPCModelFromURL('ali',     './models/ali.glb');
-loadNPCModelFromURL('mak',     './models/mak.glb');
-loadNPCModelFromURL('wak',     './models/wak.glb');
-loadNPCModelFromURL('tok',     './models/tok.glb');
-loadNPCModelFromURL('puteri',  './models/puteri.glb');
+//loadNPCModelFromURL('pakpandir','./models/pakpandir.glb');
+//loadNPCModelFromURL('siti',    './models/siti.glb');
+//loadNPCModelFromURL('ali',     './models/ali.glb');
+//loadNPCModelFromURL('mak',     './models/mak.glb');
+//loadNPCModelFromURL('wak',     './models/wak.glb');
+//loadNPCModelFromURL('tok',     './models/tok.glb');
+//loadNPCModelFromURL('puteri',  './models/puteri.glb');
 
 // ══════════════════════════════════════════════════
 // TICK MOVEMENT  —  called every frame from loop.js

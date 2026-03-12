@@ -52,32 +52,45 @@ document.addEventListener('keydown', e => {
 document.addEventListener('keyup', e => { keys[e.key] = false; });
 
 // ── Update player position each frame ──
+// Pre-allocated vectors — never create new THREE.Vector3 inside this function
+const _pMove  = new THREE.Vector3();
+const _pFwd   = new THREE.Vector3();
+const _pRight = new THREE.Vector3();
+const _pNp    = new THREE.Vector3();
+// Cache NPC positions array so we don't call Object.values() every frame
+let _npcPosList = null;
+
 function updatePlayer(dt) {
   if (dialogPhase > 0) return;
 
-  const move  = new THREE.Vector3();
-  const fwd   = new THREE.Vector3(-Math.sin(pState.yaw), 0, -Math.cos(pState.yaw));
-  const right = new THREE.Vector3( Math.cos(pState.yaw), 0, -Math.sin(pState.yaw));
+  // Rebuild NPC cache if needed (uses same dirty flag as loop.js)
+  if (!_npcPosList || _npcCacheDirty) {
+    _npcPosList = Object.values(npcObjects).map(o => o.group);
+  }
 
-  if (keys['w'] || keys['W'] || keys['ArrowUp'])    move.addScaledVector(fwd,   1);
-  if (keys['s'] || keys['S'] || keys['ArrowDown'])  move.addScaledVector(fwd,  -1);
-  if (keys['a'] || keys['A'] || keys['ArrowLeft'])  move.addScaledVector(right,-1);
-  if (keys['d'] || keys['D'] || keys['ArrowRight']) move.addScaledVector(right,  1);
+  _pMove.set(0, 0, 0);
+  _pFwd.set(-Math.sin(pState.yaw), 0, -Math.cos(pState.yaw));
+  _pRight.set( Math.cos(pState.yaw), 0, -Math.sin(pState.yaw));
 
-  if (move.length() > 0) {
-    move.normalize().multiplyScalar(pState.speed * dt);
-    const np = pState.pos.clone().add(move);
+  if (keys['w'] || keys['W'] || keys['ArrowUp'])    _pMove.addScaledVector(_pFwd,   1);
+  if (keys['s'] || keys['S'] || keys['ArrowDown'])  _pMove.addScaledVector(_pFwd,  -1);
+  if (keys['a'] || keys['A'] || keys['ArrowLeft'])  _pMove.addScaledVector(_pRight,-1);
+  if (keys['d'] || keys['D'] || keys['ArrowRight']) _pMove.addScaledVector(_pRight,  1);
+
+  if (_pMove.lengthSq() > 0) {
+    _pMove.normalize().multiplyScalar(pState.speed * dt);
+    _pNp.copy(pState.pos).add(_pMove);
 
     // World bounds
-    np.x = Math.max(-WORLD+1, Math.min(WORLD-1, np.x));
-    np.z = Math.max(-WORLD+1, Math.min(WORLD-1, np.z));
+    _pNp.x = Math.max(-WORLD+1, Math.min(WORLD-1, _pNp.x));
+    _pNp.z = Math.max(-WORLD+1, Math.min(WORLD-1, _pNp.z));
 
     // Simple NPC collision
     let blocked = false;
-    Object.values(npcObjects).forEach(({ group }) => {
-      if (np.distanceTo(group.position) < 1.2) blocked = true;
-    });
-    if (!blocked) pState.pos.copy(np);
+    for (let i = 0; i < _npcPosList.length; i++) {
+      if (_pNp.distanceTo(_npcPosList[i].position) < 1.2) { blocked = true; break; }
+    }
+    if (!blocked) pState.pos.copy(_pNp);
   }
 
   playerBody.position.copy(pState.pos);

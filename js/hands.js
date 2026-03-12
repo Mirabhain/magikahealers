@@ -158,16 +158,21 @@ function processHandFrame(results) {
     locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`,
   });
   hands.setOptions({
-    maxNumHands:          2,
-    modelComplexity:      0,
+    maxNumHands:            2,
+    modelComplexity:        0,      // lightest model
     minDetectionConfidence: 0.7,
     minTrackingConfidence:  0.6,
   });
   hands.onResults(processHandFrame);
 
+  // Throttle: only send every other frame to MediaPipe
+  let _mpFrameSkip = 0;
   const cam = new Camera(videoEl, {
-    onFrame: async () => { await hands.send({ image: videoEl }); },
-    width: 320, height: 240,
+    onFrame: async () => {
+      if (++_mpFrameSkip % 2 !== 0) return; // skip every other frame
+      await hands.send({ image: videoEl });
+    },
+    width: 240, height: 180, // reduced from 320x240
   });
   cam.start().catch(() => {
     notify('NO CAMERA — USE Q W Z R KEYS');
