@@ -164,7 +164,7 @@ function loadNPCModelFromURL(npcId, url, targetH) {
 loadNPCModelFromURL('badang',  './models/badang.glb');
 loadNPCModelFromURL('nenek',   './models/nenek kebayan.glb');
 //loadNPCModelFromURL('pakpandir','./models/pakpandir.glb');
-//loadNPCModelFromURL('siti',    './models/siti.glb');
+loadNPCModelFromURL('pocong',    './models/pocong.glb');
 //loadNPCModelFromURL('ali',     './models/ali.glb');
 //loadNPCModelFromURL('mak',     './models/mak.glb');
 //loadNPCModelFromURL('wak',     './models/wak.glb');

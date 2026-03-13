@@ -152,13 +152,13 @@ function loadHouseGLB(url, x, z, scale) {
   });
 }
 
-loadHouseGLB('./models/house.glb', -12, -12);
-loadHouseGLB('./models/house.glb',  12, -12);
-loadHouseGLB('./models/house.glb', -12,  12);
-loadHouseGLB('./models/house.glb',  12,  12);
-loadHouseGLB('./models/house.glb', -32, -32);
-loadHouseGLB('./models/house.glb',   0, -38);
-loadHouseGLB('./models/house.glb',  32, -32);
+loadHouseGLB('./models/rumahkampung.glb', -12, -12);
+loadHouseGLB('./models/rumahkampung.glb',  12, -12);
+loadHouseGLB('./models/rumahkampung.glb', -12,  12);
+loadHouseGLB('./models/rumahkampung.glb',  12,  12);
+loadHouseGLB('./models/rumahkampung.glb', -32, -32);
+loadHouseGLB('./models/rumahkampung.glb',   0, -38);
+loadHouseGLB('./models/rumahkampung.glb',  32, -32);
 
 
 // ── Tree builder & loader ──
@@ -259,6 +259,44 @@ function buildStall(x, z, color) {
 buildStall(-5, -6, 0xee4444); buildStall( 5, -6, 0x44aaee);
 buildStall(-5,  6, 0xeeaa22); buildStall( 5,  6, 0x22ee88);
 buildStall(-20,-3, 0xcc44aa); buildStall(20,  3, 0x44ccee);
+
+// ── Kuih Muih GLB on each stall counter ──
+const STALL_POSITIONS = [
+  [-5, -6], [ 5, -6],
+  [-5,  6], [ 5,  6],
+  [-20, -3], [20,  3],
+];
+
+(function loadKuihGLB() {
+  const loader = new THREE.GLTFLoader();
+  loader.load('./models/kuihmuih.glb', (gltf) => {
+    STALL_POSITIONS.forEach(([sx, sz]) => {
+      const model = gltf.scene.clone(true);
+      const bbox = new THREE.Box3().setFromObject(model);
+      const size = new THREE.Vector3();
+      bbox.getSize(size);
+      // Scale to fit nicely on the counter (about 0.5 units wide)
+      model.scale.setScalar(0.5 / Math.max(size.x, size.z));
+      // Sit on top of counter (counter top is at y = 0.8)
+      const bbox2 = new THREE.Box3().setFromObject(model);
+      model.position.set(sx, 0.8 - bbox2.min.y, sz);
+      scene.add(model);
+    });
+  }, undefined, () => {
+    // Fallback: simple colourful plate stacks if GLB missing
+    STALL_POSITIONS.forEach(([sx, sz]) => {
+      const colors = [0xff6688, 0xffcc44, 0x88ffaa, 0xff8844];
+      colors.forEach((col, i) => {
+        const plate = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.18 - i*0.02, 0.2 - i*0.02, 0.06, 8),
+          new THREE.MeshLambertMaterial({ color: col })
+        );
+        plate.position.set(sx + (i % 2 === 0 ? -0.3 : 0.3), 0.83 + i * 0.07, sz);
+        scene.add(plate);
+      });
+    });
+  });
+})();
 
 // ── Rocks ──
 [[-18,-6],[18,6],[-18,12],[10,-18],[-36,-15],[36,15],[-10,-42],[42,10],
@@ -371,6 +409,7 @@ function buildFallbackLamp(x, z, zoneIdx) {
   scene.add(g);
   lampObjects.push({ group: g, light: _lampZoneLights[zoneIdx % _lampZoneLights.length], glow: head });
 }
+
 function loadLampGLB(url) {
   const loader = new THREE.GLTFLoader();
   loader.load(url, (gltf) => {
@@ -475,6 +514,89 @@ function loadLampGLB(url) {
   });
 }
 loadLampGLB('./models/pelita.glb');
+
+// ── House Pelita — builds a single pelita torch ──
+function buildHousePelita(x, z) {
+  const group = new THREE.Group();
+  const bamboo  = 0xc8880a;
+  const cageMat = new THREE.MeshLambertMaterial({ color: bamboo });
+
+  // Bamboo stick
+  const stick = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.05, 2.2, 6), cageMat
+  );
+  stick.position.y = 1.1;
+  group.add(stick);
+
+  // Cage bars + rings
+  const cageY = 2.2, cageH = 0.55, cageR = 0.13;
+  [0, Math.PI/2, Math.PI, Math.PI*1.5].forEach(angle => {
+    const bar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, cageH, 4), cageMat
+    );
+    bar.position.set(Math.cos(angle) * cageR, cageY + cageH / 2, Math.sin(angle) * cageR);
+    group.add(bar);
+  });
+  [0, cageH * 0.5, cageH].forEach(yOff => {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(cageR, 0.022, 4, 12), cageMat
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = cageY + yOff;
+    group.add(ring);
+  });
+
+  // Flame
+  const flameInner = new THREE.Mesh(
+    new THREE.ConeGeometry(0.04, 0.18, 5),
+    new THREE.MeshBasicMaterial({ color: 0xffdd00 })
+  );
+  flameInner.position.y = cageY + cageH + 0.14;
+  group.add(flameInner);
+
+  const flameOuter = new THREE.Mesh(
+    new THREE.ConeGeometry(0.06, 0.22, 5),
+    new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.85 })
+  );
+  flameOuter.position.y = cageY + cageH + 0.12;
+  group.add(flameOuter);
+
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(0.1, 5, 5),
+    new THREE.MeshBasicMaterial({ color: 0xff8800, transparent: true, opacity: 0.25 })
+  );
+  halo.position.y = cageY + cageH + 0.08;
+  group.add(halo);
+
+  group.position.set(x, 0, z);
+  scene.add(group);
+
+  lampObjects.push({
+    group,
+    light: _lampZoneLights[Math.abs(Math.round(x + z)) % _lampZoneLights.length],
+    glow: flameInner
+  });
+}
+
+// ── 2 pelitas flanking the entrance of each rumahkampung ──
+[
+  [-12, -12], [ 12, -12],
+  [-12,  12], [ 12,  12],
+  [-32, -32], [  0, -38],
+  [ 32, -32],
+].forEach(([hx, hz]) => {
+  // forward = direction from house toward centre (0,0)
+  const dx = -hx, dz = -hz;
+  const len = Math.sqrt(dx*dx + dz*dz);
+  const fx = dx/len, fz = dz/len; // forward unit vector
+  const rx = -fz,    rz =  fx;   // right unit vector (perpendicular)
+
+  const FORWARD = 2.6; // in front of house
+  const SIDE    = 1.4; // left/right of entrance
+
+  buildHousePelita(hx + fx*FORWARD + rx*SIDE, hz + fz*FORWARD + rz*SIDE);
+  buildHousePelita(hx + fx*FORWARD - rx*SIDE, hz + fz*FORWARD - rz*SIDE);
+});
 
 // ── Magic particles (reduced to 50) ──
 const mpGeo = new THREE.BufferGeometry();
