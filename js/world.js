@@ -159,11 +159,7 @@ loadHouseGLB('./models/house.glb',  12,  12);
 loadHouseGLB('./models/house.glb', -32, -32);
 loadHouseGLB('./models/house.glb',   0, -38);
 loadHouseGLB('./models/house.glb',  32, -32);
-loadHouseGLB('./models/house.glb',  38,   0);
-loadHouseGLB('./models/house.glb',  32,  32);
-loadHouseGLB('./models/house.glb',   0,  38);
-loadHouseGLB('./models/house.glb', -32,  32);
-loadHouseGLB('./models/house.glb', -38,   0);
+
 
 // ── Tree builder & loader ──
 function buildTree(x, z) {
@@ -188,66 +184,8 @@ function buildTree(x, z) {
   return g;
 }
 
-const trees = [];
-
-function loadtreeGLB(url, x, z, scale) {
-  scale = scale || 1;
-  const loader = new THREE.GLTFLoader();
-  loader.load(url, (gltf) => {
-    const model = gltf.scene;
-    const bbox = new THREE.Box3().setFromObject(model);
-    const size = new THREE.Vector3();
-    bbox.getSize(size);
-    model.scale.setScalar((6 / size.y) * scale);
-    const bbox2 = new THREE.Box3().setFromObject(model);
-    model.position.y = -bbox2.min.y;
-    const group = new THREE.Group();
-    group.add(model);
-    group.position.set(x, 0, z);
-    group._sway = Math.random() * Math.PI * 2;
-    scene.add(group);
-    trees.push(group);
-  }, undefined, () => {
-    trees.push(buildTree(x, z));
-  });
-}
-
-function loadtraditionalobject(url, x, z, scale) {
-  scale = scale || 1;
-  const loader = new THREE.GLTFLoader();
-  loader.load(url, (gltf) => {
-    const model = gltf.scene;
-    const bbox = new THREE.Box3().setFromObject(model);
-    const size = new THREE.Vector3();
-    bbox.getSize(size);
-    model.scale.setScalar((6 / size.y) * scale);
-    const bbox2 = new THREE.Box3().setFromObject(model);
-    model.position.y = -bbox2.min.y;
-    const group = new THREE.Group();
-    group.add(model);
-    group.position.set(x, 0, z);
-    scene.add(group);
-  }, undefined, () => {});
-}
-
-// Inner ring trees
-loadtreeGLB('./models/tree (1).glb', -24, -24); loadtreeGLB('./models/tree (1).glb', -20, -24);
-loadtreeGLB('./models/tree (1).glb', -16, -24); loadtreeGLB('./models/tree (1).glb',  16, -24);
-loadtreeGLB('./models/tree (1).glb',  20, -24); loadtreeGLB('./models/tree (1).glb',  24, -24);
-loadtreeGLB('./models/tree (1).glb', -24,  24); loadtreeGLB('./models/tree (1).glb', -20,  24);
-loadtreeGLB('./models/tree (1).glb', -16,  24); loadtreeGLB('./models/tree (1).glb',  16,  24);
-loadtreeGLB('./models/tree (1).glb',  20,  24); loadtreeGLB('./models/tree (1).glb',  24,  24);
-loadtreeGLB('./models/tree (1).glb', -24,  -8); loadtreeGLB('./models/tree (1).glb', -24,   0);
-loadtreeGLB('./models/tree (1).glb', -24,   8); loadtreeGLB('./models/tree (1).glb',  24,  -8);
-loadtreeGLB('./models/tree (1).glb',  24,   0); loadtreeGLB('./models/tree (1).glb',  24,   8);
-loadtreeGLB('./models/tree (1).glb', -18, -18); loadtreeGLB('./models/tree (1).glb',  18, -18);
-loadtreeGLB('./models/tree (1).glb', -18,  18); loadtreeGLB('./models/tree (1).glb',  18,  18);
-loadtreeGLB('./models/tree (1).glb',  -6, -20); loadtreeGLB('./models/tree (1).glb',   6, -20);
-loadtreeGLB('./models/tree (1).glb',  -6,  20); loadtreeGLB('./models/tree (1).glb',   6,  20);
-
-// Outer perimeter trees
-const OUTER_TREE_POSITIONS = [
-  [-58,-58],[-48,-58],[-36,-58],[-20,-58],[0,-58],[20,-58],[36,-58],[48,-58],[58,-58],
+const trees = [
+   [-58,-58],[-48,-58],[-36,-58],[-20,-58],[0,-58],[20,-58],[36,-58],[48,-58],[58,-58],
   [-58, 58],[-48, 58],[-36, 58],[-20, 58],[0, 58],[20, 58],[36, 58],[48, 58],[58, 58],
   [-58,-48],[-58,-36],[-58,-20],[-58, 0],[-58,20],[-58,36],[-58,48],
   [ 58,-48],[ 58,-36],[ 58,-20],[ 58, 0],[ 58,20],[ 58,36],[ 58,48],
@@ -255,11 +193,9 @@ const OUTER_TREE_POSITIONS = [
   [-44, 10],[44,-10],[10,-44],[-10,44],
   [-30,-44],[30,44],[-44,30],[44,-30],
   [-22, 46],[22,-46],[-46,22],[46,-22],
-  [-35,  5],[35, -5],[ -5,-35],[ 5, 35],
+  [-35,  5],[35, -5],[ -5,-35],[ 5, 35]
 ];
-OUTER_TREE_POSITIONS.forEach(([x, z]) => loadtreeGLB('./models/tree (1).glb', x, z));
 
-loadtraditionalobject('./models/keris.glb', -5, -1);
 
 // ── Wells ──
 function buildWell(x, z) {
@@ -464,35 +400,66 @@ function buildFallbackLamp(x, z, zoneIdx) {
   scene.add(g);
   lampObjects.push({ group: g, light: _lampZoneLights[zoneIdx % _lampZoneLights.length], glow: head });
 }
-
 function loadLampGLB(url) {
   const loader = new THREE.GLTFLoader();
   loader.load(url, (gltf) => {
     LAMP_POSITIONS.forEach(({ x, z }, idx) => {
+      const group = new THREE.Group();
+
+      // ── Rectangle base tray (pelita stand) ──
+      const base = new THREE.Mesh(
+        new THREE.BoxGeometry(0.5, 0.06, 0.22),
+        new THREE.MeshLambertMaterial({ color: 0x5a3a10 })
+      );
+      base.position.y = 0.03;
+      group.add(base);
+
+      // Small legs under the base
+      [[-0.18, 0.09], [0.18, 0.09], [-0.18, -0.09], [0.18, -0.09]].forEach(([lx, lz]) => {
+        const leg = new THREE.Mesh(
+          new THREE.BoxGeometry(0.05, 0.06, 0.05),
+          new THREE.MeshLambertMaterial({ color: 0x3a2208 })
+        );
+        leg.position.set(lx, 0, lz);
+        group.add(leg);
+      });
+
+      // ── Pelita GLB — scaled small ──
       const model = gltf.scene.clone(true);
       const bbox = new THREE.Box3().setFromObject(model);
       const size = new THREE.Vector3();
       bbox.getSize(size);
-      model.scale.setScalar(3.5 / size.y);
+      model.scale.setScalar(0.45 / size.y); // small: 0.45 units tall
       const bbox2 = new THREE.Box3().setFromObject(model);
-      model.position.y = -bbox2.min.y;
-      const group = new THREE.Group();
+      model.position.y = -bbox2.min.y + 0.06; // sit on top of the base
       group.add(model);
+
+      // ── Flame glow above pelita ──
+      const glow = new THREE.Mesh(
+        new THREE.SphereGeometry(0.06, 5, 5),
+        new THREE.MeshBasicMaterial({ color: 0xff9922 })
+      );
+      glow.position.y = 0.65;
+      group.add(glow);
+
+      // Soft halo around the flame
+      const halo = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12, 5, 5),
+        new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.3 })
+      );
+      halo.position.y = 0.65;
+      group.add(halo);
+
       group.position.set(x, 0, z);
       scene.add(group);
-      const glow = new THREE.Mesh(
-        new THREE.SphereGeometry(0.18, 5, 5),
-        new THREE.MeshBasicMaterial({ color: 0xffeeaa })
-      );
-      glow.position.set(x, 3.5, z);
-      scene.add(glow);
+
       lampObjects.push({ group, light: _lampZoneLights[idx % _lampZoneLights.length], glow });
     });
   }, undefined, () => {
     LAMP_POSITIONS.forEach(({ x, z }, idx) => buildFallbackLamp(x, z, idx));
   });
 }
-loadLampGLB('./models/floor_lamp.glb');
+loadLampGLB('./models/pelita.glb');
 
 // ── Magic particles (reduced to 50) ──
 const mpGeo = new THREE.BufferGeometry();

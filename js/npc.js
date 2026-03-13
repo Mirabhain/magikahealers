@@ -162,7 +162,7 @@ function loadNPCModelFromURL(npcId, url, targetH) {
 // work (aura + sprites visible) — just no 3D mesh.
 // ══════════════════════════════════════════════════
 loadNPCModelFromURL('badang',  './models/badang.glb');
-loadNPCModelFromURL('nenek',   './models/nenek.glb');
+loadNPCModelFromURL('nenek',   './models/nenek kebayan.glb');
 //loadNPCModelFromURL('pakpandir','./models/pakpandir.glb');
 //loadNPCModelFromURL('siti',    './models/siti.glb');
 //loadNPCModelFromURL('ali',     './models/ali.glb');
