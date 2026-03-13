@@ -234,7 +234,7 @@ function _buildFallbackMesh(g, npcId, targetH) {
 // ══════════════════════════════════════════════════
 loadNPCModelFromURL('badang',  './models/badang.glb');
 loadNPCModelFromURL('nenek',   './models/nenek kebayan.glb');
-//loadNPCModelFromURL('pakpandir','./models/pakpandir.glb');
+loadNPCModelFromURL('pakpandir','./models/pakcik.glb');
 loadNPCModelFromURL('pocong',  './models/pocong.glb');
 //loadNPCModelFromURL('ali',     './models/ali.glb');
 //loadNPCModelFromURL('mak',     './models/mak.glb');
@@ -288,6 +288,8 @@ function tickNPCMovement(dt) {
       }
     }
 
+    
+
     // ══ PATROL ══════════════════════════════════
     if (beh.type === 'patrol') {
       const wps = beh.waypoints;
@@ -329,4 +331,6 @@ function tickNPCMovement(dt) {
       if (group._legR) group._legR.rotation.x *= 0.88;
     }
   });
+
+  
 }
