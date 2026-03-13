@@ -151,8 +151,79 @@ function loadNPCModelFromURL(npcId, url, targetH) {
 
     console.log('✅ NPC GLB loaded: ' + npcId);
   }, undefined, (err) => {
-    console.warn('❌ NPC GLB load error for ' + npcId + ':', err);
+    console.warn('❌ NPC GLB load error for ' + npcId + ' — building fallback mesh:', err);
+    _buildFallbackMesh(entry.group, npcId, targetH);
   });
+}
+
+function _buildFallbackMesh(g, npcId, targetH) {
+  if (g._model) return;
+  const h = targetH || 1.7;
+  const root = new THREE.Group();
+
+  if (npcId === 'pocong') {
+    const shroudMat = new THREE.MeshLambertMaterial({ color: 0xf0efe8 });
+    const darkMat   = new THREE.MeshBasicMaterial({ color: 0x111111 });
+    const ropeMat   = new THREE.MeshLambertMaterial({ color: 0xd4c08a });
+
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 1.1, 8), shroudMat);
+    body.position.y = 0.55;
+    root.add(body);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 8, 8), shroudMat);
+    head.position.y = 1.28;
+    root.add(head);
+
+    const knot = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.045, 5, 10), ropeMat);
+    knot.position.y = 1.62;
+    root.add(knot);
+
+    [-0.06, 0.06].forEach(ox => {
+      const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.01, 0.22, 4), ropeMat);
+      tail.position.set(ox, 1.5, 0);
+      root.add(tail);
+    });
+
+    [-0.1, 0.1].forEach(ox => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.048, 5, 5), darkMat);
+      eye.position.set(ox, 1.3, 0.23);
+      root.add(eye);
+    });
+
+    const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.03, 0.04), darkMat);
+    mouth.position.set(0, 1.18, 0.24);
+    root.add(mouth);
+
+    root.position.y = 0.18; // pocong floats!
+
+  } else {
+    const data    = Object.values(npcObjects).find(e => e.group === g)?.data;
+    const bodyMat = new THREE.MeshLambertMaterial({ color: data?.bodyHex || 0x888888 });
+    const headMat = new THREE.MeshLambertMaterial({ color: data?.headHex || 0xf0c898 });
+
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.28), bodyMat);
+    torso.position.y = 0.9; root.add(torso);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, 7, 7), headMat);
+    head.position.y = 1.55; root.add(head);
+
+    [-0.13, 0.13].forEach((ox, i) => {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.22), bodyMat);
+      leg.position.set(ox, 0.3, 0); root.add(leg);
+      if (i === 0) g._legL = leg; else g._legR = leg;
+    });
+
+    [-0.38, 0.38].forEach(ox => {
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.55, 0.18), bodyMat);
+      arm.position.set(ox, 0.85, 0); root.add(arm);
+    });
+  }
+
+  g.add(root);
+  g._model = root;
+  g._sickSprite.position.y = h + 0.5;
+  g._healSprite.position.y = h + 0.5;
+  console.log('🔧 Fallback mesh built for: ' + npcId);
 }
 
 // ══════════════════════════════════════════════════
@@ -164,7 +235,7 @@ function loadNPCModelFromURL(npcId, url, targetH) {
 loadNPCModelFromURL('badang',  './models/badang.glb');
 loadNPCModelFromURL('nenek',   './models/nenek kebayan.glb');
 //loadNPCModelFromURL('pakpandir','./models/pakpandir.glb');
-loadNPCModelFromURL('pocong',    './models/pocong.glb');
+loadNPCModelFromURL('pocong',  './models/pocong.glb');
 //loadNPCModelFromURL('ali',     './models/ali.glb');
 //loadNPCModelFromURL('mak',     './models/mak.glb');
 //loadNPCModelFromURL('wak',     './models/wak.glb');
