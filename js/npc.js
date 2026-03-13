@@ -234,13 +234,13 @@ function _buildFallbackMesh(g, npcId, targetH) {
 // ══════════════════════════════════════════════════
 loadNPCModelFromURL('badang',  './models/badang.glb');
 loadNPCModelFromURL('nenek',   './models/nenek kebayan.glb');
-loadNPCModelFromURL('pakpandir','./models/pakcik.glb');
+//loadNPCModelFromURL('pakpandir','./models/pakpandir.glb');
 loadNPCModelFromURL('pocong',  './models/pocong.glb');
 //loadNPCModelFromURL('ali',     './models/ali.glb');
-//loadNPCModelFromURL('mak',     './models/mak.glb');
-//loadNPCModelFromURL('wak',     './models/wak.glb');
-//loadNPCModelFromURL('tok',     './models/tok.glb');
-//loadNPCModelFromURL('puteri',  './models/puteri.glb');
+loadNPCModelFromURL('bawangmerah',     './models/mak.glb');
+loadNPCModelFromURL('hanglekir',     './models/hanglekir.glb');
+loadNPCModelFromURL('hangtuah',     './models/tok.glb');
+loadNPCModelFromURL('bawangputih',  './models/bawang_putih.glb');
 
 // ══════════════════════════════════════════════════
 // TICK MOVEMENT  —  called every frame from loop.js
@@ -288,8 +288,6 @@ function tickNPCMovement(dt) {
       }
     }
 
-    
-
     // ══ PATROL ══════════════════════════════════
     if (beh.type === 'patrol') {
       const wps = beh.waypoints;
@@ -331,6 +329,4 @@ function tickNPCMovement(dt) {
       if (group._legR) group._legR.rotation.x *= 0.88;
     }
   });
-
-  
 }
